@@ -101,6 +101,7 @@ export interface GameState {
   gamePhase: 'setup' | 'playing' | 'ended';
   winner?: string;
   victoryType?: 'military' | 'economic' | 'diplomatic' | 'technological';
+  score?: number;
 }
 
 export interface GameEvent {

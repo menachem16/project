@@ -76,7 +76,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       description: 'הסלמה בין ישראל לשכנות, יחסים מתוחים, איומים מרובים.',
       initialRelationships: { israel: { iran: -90, syria: -80, lebanon: -80, egypt: 10 } },
       initialResources: { israel: { oil: 2, food: 30 }, iran: { oil: 90 } },
-      victoryCondition: (gs) => gs.score >= 150
+      victoryCondition: (gs) => (gs.score ?? 0) >= 150
     },
     {
       id: 'nuclear',
@@ -84,14 +84,41 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       description: 'איראן ופקיסטן עם נשק גרעיני, סיכון גבוה.',
       initialRelationships: { israel: { iran: -100, pakistan: -80 }, iran: { israel: -100 }, pakistan: { israel: -80 } },
       initialResources: { iran: { oil: 100 }, pakistan: { oil: 80 } },
-      victoryCondition: (gs) => gs.countries['israel']?.military.nuclear.status === 'operational' && gs.score >= 200
+      victoryCondition: (gs) => gs.countries['israel']?.military.nuclear.status === 'operational' && (gs.score ?? 0) >= 200
     },
     {
       id: 'alliances',
       name: 'בריתות אזוריות',
       description: 'בריתות חדשות משנות את מאזן הכוחות.',
       initialRelationships: { israel: { egypt: 80, saudi: 80 }, egypt: { israel: 80 }, saudi: { israel: 80 } },
-      victoryCondition: (gs) => gs.score >= 120
+      victoryCondition: (gs) => (gs.score ?? 0) >= 120
+    },
+    {
+      id: 'economic',
+      name: 'ניצחון כלכלי',
+      description: 'הובל את ישראל ל-GDP של טריליון דולר!',
+      victoryCondition: (gs) => gs.countries['israel']?.economy.gdp >= 1_000_000_000_000
+    },
+    {
+      id: 'diplomatic',
+      name: 'מאסטר דיפלומטי',
+      description: 'שפר את היחסים עם כל השכנים ל-50 ומעלה.',
+      victoryCondition: (gs) => {
+        const neighbors = ['egypt','jordan','syria','lebanon','saudi','turkey'];
+        return neighbors.every(n => (gs.countries['israel']?.diplomacy.relationships[n] ?? 0) > 50);
+      }
+    },
+    {
+      id: 'survival',
+      name: 'הישרדות',
+      description: 'הישרדות 20 תורות תחת איום מתמיד.',
+      victoryCondition: (gs) => gs.turn >= 20
+    },
+    {
+      id: 'tech',
+      name: 'ניצחון טכנולוגי',
+      description: 'פיתוח טכנולוגיית סייבר/חלל מתקדמת (score >= 180 + פעולה טכנולוגית מיוחדת).',
+      victoryCondition: (gs) => (gs.score ?? 0) >= 180 && gs.countries['israel']?.intelligence.capabilities.cyber >= 95
     }
   ];
 
@@ -480,11 +507,11 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
     const scenario = scenarios.find(s => s.id === scenarioId);
     if (!scenario) return;
     if ('initialRelationships' in scenario && scenario.initialRelationships) {
-      Object.entries(scenario.initialRelationships).forEach(([country, value]) => {
+      Object.entries(scenario.initialRelationships).forEach(([country, rels]) => {
         if (gameState.countries[country]) {
           gameState.countries[country].diplomacy.relationships = {
             ...gameState.countries[country].diplomacy.relationships,
-            ...value
+            ...rels
           };
         }
       });
@@ -508,6 +535,8 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
 
   // Check victory after each action
   const checkVictory = () => {
+    // Ensure score is set in gameState for scenario logic
+    gameState.score = score;
     if (scenarioVictoryCondition && scenarioVictoryCondition(gameState)) {
       setShowAchievementSummary(true);
     }
