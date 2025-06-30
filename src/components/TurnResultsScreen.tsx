@@ -45,6 +45,17 @@ export const TurnResultsScreen: React.FC<TurnResultsScreenProps> = ({
   }, [isOpen]);
 
   if (!isOpen) return null;
+  if (!gameState || !gameState.countries || !gameState.currentPlayer) {
+    return (
+      <div className="fixed inset-0 bg-black/80 z-[10000] flex items-center justify-center">
+        <div className="bg-red-900 text-white p-8 rounded-lg shadow-lg text-center">
+          <h2 className="text-2xl font-bold mb-4">שגיאה: נתוני משחק חסרים</h2>
+          <p>לא ניתן להציג את דוח התור. נסה לרענן את הדף או להתחיל משחק חדש.</p>
+          <button onClick={onClose} className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold">סגור</button>
+        </div>
+      </div>
+    );
+  }
 
   const currentCountry = gameState.countries[gameState.currentPlayer];
   const previousCountry = previousState?.countries[gameState.currentPlayer];

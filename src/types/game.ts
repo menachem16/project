@@ -151,7 +151,9 @@ export type GameAction =
   | { type: 'trade_agreement'; country: string; target: string }
   | { type: 'economic_sanctions'; country: string; target: string }
   | { type: 'gather_intelligence'; country: string }
-  | { type: 'declare_war'; country: string; target: string };
+  | { type: 'declare_war'; country: string; target: string }
+  | { type: 'execute_action'; country: string; actionId: string; cost: Record<string, number>; effects: Record<string, any> }
+  | { type: 'resolve_dilemma'; country: string; dilemmaId: string; optionId: string };
 
 export interface Scenario {
   id: string;

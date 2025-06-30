@@ -32,8 +32,47 @@ export const useGameEngine = () => {
 
   const processAction = useCallback((action: GameAction) => {
     setGameState((prevState: GameState) => {
+      if (!prevState || !prevState.countries || !prevState.currentPlayer) {
+        return prevState;
+      }
       const newState: GameState = { ...prevState };
       const country = newState.countries[action.country];
+      // טיפול בפעולות מותאמות
+      if (action.type === 'execute_action') {
+        // עדכון state לפי effects
+        const effects = action.effects || {};
+        newState.countries[action.country] = { ...country, ...effects };
+        // ניקוד לדוג' על שיפור GDP/יציבות/תמיכה
+        let scoreDelta = 0;
+        if (effects.economy && effects.economy.gdp && effects.economy.gdp > country.economy.gdp) scoreDelta += 10;
+        if (effects.politics && effects.politics.stability && effects.politics.stability > country.politics.stability) scoreDelta += 5;
+        if (effects.politics && effects.politics.publicSupport && effects.politics.publicSupport > country.politics.publicSupport) scoreDelta += 5;
+        newState.score = (newState.score || 0) + scoreDelta;
+        // אירוע ליומן
+        newState.events.push({
+          id: `event_${Date.now()}`,
+          type: 'internal',
+          title: 'החלטה בוצעה',
+          description: `המדינה ביצעה את הפעולה: ${action.actionId}`,
+          effects: effects,
+          duration: 2,
+          severity: 'medium'
+        });
+        return newState;
+      }
+      if (action.type === 'resolve_dilemma') {
+        // סימון דילמה כיושבת, אפשר להרחיב ל-state
+        newState.events.push({
+          id: `event_${Date.now()}`,
+          type: 'internal',
+          title: 'דילמה נפתרה',
+          description: `המדינה בחרה באופציה: ${action.optionId}`,
+          effects: {},
+          duration: 2,
+          severity: 'low'
+        });
+        return newState;
+      }
       // Calculate and apply effects to acting country
       const effects = calculateActionEffects(action, country);
       newState.countries[action.country] = { ...country, ...effects };

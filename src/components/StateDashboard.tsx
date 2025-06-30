@@ -17,6 +17,10 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
   isDayMode,
   score
 }) => {
+  if (!gameState || !gameState.countries || !gameState.currentPlayer) {
+    return <div className="bg-red-900 text-white p-8 rounded-lg shadow-lg text-center">שגיאה: נתוני משחק חסרים</div>;
+  }
+
   const currentCountry = gameState.countries[gameState.currentPlayer];
   
   // Calculate budget breakdown

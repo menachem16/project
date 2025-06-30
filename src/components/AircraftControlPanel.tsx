@@ -109,7 +109,8 @@ export const AircraftControlPanel: React.FC<AircraftControlPanelProps> = ({
       target: selectedTarget,
       missionType: selectedMission,
       flightTimes: missionDetails.flightTimes,
-      timestamp: new Date()
+      timestamp: new Date(),
+      launchCoordinates: AIRBASES.find(b => b.id === selectedAirbase)?.coordinates
     };
 
     onLaunchAircraft(missionData);

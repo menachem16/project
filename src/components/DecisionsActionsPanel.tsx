@@ -251,6 +251,10 @@ export const DecisionsActionsPanel: React.FC<DecisionsActionsPanelProps> = ({
     setShowDilemma(false);
   };
 
+  if (!gameState || !gameState.countries || !gameState.currentPlayer) {
+    return <div className="bg-red-900 text-white p-8 rounded-lg shadow-lg text-center">שגיאה: נתוני משחק חסרים</div>;
+  }
+
   return (
     <div className="flex items-center justify-center p-4">
       <div className={`w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg shadow-2xl ${
