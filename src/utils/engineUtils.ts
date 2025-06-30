@@ -281,6 +281,10 @@ export function calculateActionEffects(action: GameAction, country: Country): Pa
 export function executeAITurn(gameState: GameState, countryId: string): GameAction | null {
   const country = gameState.countries[countryId];
   const personality = AI_PERSONALITIES[countryId];
+  if (!personality) {
+    // No AI personality defined for this country, skip AI turn
+    return null;
+  }
   const possibleActions: (GameAction & { weight: number })[] = [];
   // Military actions
   if (personality.aggression > 60 && country.military.experience < 80) {
