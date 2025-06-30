@@ -151,3 +151,20 @@ export type GameAction =
   | { type: 'economic_sanctions'; country: string; target: string }
   | { type: 'gather_intelligence'; country: string }
   | { type: 'declare_war'; country: string; target: string };
+
+export interface Scenario {
+  id: string;
+  name: string;
+  description: string;
+  initialRelationships?: Record<string, number>;
+  initialResources?: Record<string, Partial<Country['resources']>>;
+  availableWeapons?: string[];
+  victoryCondition?: (gameState: GameState) => boolean;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  unlockedAt?: number;
+}

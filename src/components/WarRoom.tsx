@@ -16,7 +16,7 @@ import { DecisionsActionsPanel } from './DecisionsActionsPanel';
 import { StateDashboard } from './StateDashboard';
 import { TurnResultsScreen } from './TurnResultsScreen';
 import { AudioSystem, AudioSystemRef } from './AudioSystem';
-import { GameState } from '../types/game';
+import { GameState, Scenario } from '../types/game';
 import { calculateMissileFlightTime, calculateInterceptionWindow } from '../utils/distanceCalculator';
 import { 
   Shield, 
@@ -38,6 +38,10 @@ import {
   BarChart3,
   Plane
 } from 'lucide-react';
+import { ScenarioPanel } from './ScenarioPanel';
+import { AchievementsPanel } from './AchievementsPanel';
+import { Achievement } from '../types/game';
+import { AchievementSummaryPanel } from './AchievementSummaryPanel';
 
 interface WarRoomProps {
   gameState: GameState;
@@ -59,8 +63,48 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
     arrow3: true,
     davidSling: true
   });
+  const [score, setScore] = useState(0);
+  const [activeScenario, setActiveScenario] = useState<string>('default');
+  const [showScenarioPanel, setShowScenarioPanel] = useState(false);
+  const [scenarioVictoryCondition, setScenarioVictoryCondition] = useState<((gs: GameState) => boolean) | null>(null);
+  const [showAchievementSummary, setShowAchievementSummary] = useState(false);
+  const scenarios: Scenario[] = [
+    { id: 'default', name: 'ברירת מחדל', description: 'משחק חופשי עם כל המדינות והמערכות.' },
+    {
+      id: 'crisis',
+      name: 'משבר אזורי',
+      description: 'הסלמה בין ישראל לשכנות, יחסים מתוחים, איומים מרובים.',
+      initialRelationships: { israel: { iran: -90, syria: -80, lebanon: -80, egypt: 10 } },
+      initialResources: { israel: { oil: 2, food: 30 }, iran: { oil: 90 } },
+      victoryCondition: (gs) => gs.score >= 150
+    },
+    {
+      id: 'nuclear',
+      name: 'הסלמה גרעינית',
+      description: 'איראן ופקיסטן עם נשק גרעיני, סיכון גבוה.',
+      initialRelationships: { israel: { iran: -100, pakistan: -80 }, iran: { israel: -100 }, pakistan: { israel: -80 } },
+      initialResources: { iran: { oil: 100 }, pakistan: { oil: 80 } },
+      victoryCondition: (gs) => gs.countries['israel']?.military.nuclear.status === 'operational' && gs.score >= 200
+    },
+    {
+      id: 'alliances',
+      name: 'בריתות אזוריות',
+      description: 'בריתות חדשות משנות את מאזן הכוחות.',
+      initialRelationships: { israel: { egypt: 80, saudi: 80 }, egypt: { israel: 80 }, saudi: { israel: 80 } },
+      victoryCondition: (gs) => gs.score >= 120
+    }
+  ];
 
   const audioRef = useRef<AudioSystemRef>(null);
+
+  const achievements = [
+    { id: 'first_strike', name: 'מכה ראשונה', description: 'בצע תקיפה ראשונה במשחק.' },
+    { id: 'score_100', name: '100 נקודות', description: 'הגע ל-100 נקודות.' },
+    { id: 'peace_maker', name: 'יוזם שלום', description: 'שפר יחסים דיפלומטיים עם מדינה אחת לפחות.' },
+    { id: 'nuclear', name: 'מאיים גרעיני', description: 'שגר טיל גרעיני.' }
+  ];
+  const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
+  const [showAchievementsPanel, setShowAchievementsPanel] = useState(false);
 
   // Generate random threats and enemy missiles
   useEffect(() => {
@@ -192,6 +236,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
   };
 
   const handleAttack = (attackData: any) => {
+    if (!unlockedAchievements.includes('first_strike')) setUnlockedAchievements(a => [...a, 'first_strike']);
     // Calculate realistic flight time
     const realFlightTime = calculateMissileFlightTime(gameState.currentPlayer, attackData.target, attackData.weapon);
     
@@ -237,6 +282,14 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       if (audioEnabled) {
         audioRef.current?.playAlert(success ? 'target_eliminated' : 'operation_failed');
       }
+
+      // Update score
+      setScore(prev => {
+        const newScore = prev + (success ? 10 : -5);
+        if (newScore >= 100 && !unlockedAchievements.includes('score_100')) setUnlockedAchievements(a => [...a, 'score_100']);
+        return newScore;
+      });
+      checkVictory();
     }, realFlightTime * 60 * 1000); // Convert minutes to milliseconds
 
     onAction({
@@ -271,6 +324,9 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       if (audioEnabled) {
         audioRef.current?.playAlert('mission_accomplished');
       }
+
+      setScore(prev => prev + 7);
+      checkVictory();
     }, missionData.flightTimes.total * 60 * 1000); // Convert minutes to milliseconds
 
     onAction({
@@ -313,6 +369,8 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       audioRef.current?.playAlert('intelligence_gathered');
     }
 
+    setScore(prev => prev + 3);
+    checkVictory();
     onAction({
       type: 'intelligence_operation',
       ...operation
@@ -330,6 +388,8 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       audioRef.current?.playAlert('cyber_attack');
     }
 
+    setScore(prev => prev + 4);
+    checkVictory();
     onAction({
       type: 'cyber_operation',
       ...operation
@@ -347,6 +407,9 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
       audioRef.current?.playAlert('diplomatic_contact');
     }
 
+    if (operation.type === 'improve_relations' && !unlockedAchievements.includes('peace_maker')) setUnlockedAchievements(a => [...a, 'peace_maker']);
+    setScore(prev => prev + 2);
+    checkVictory();
     onAction({
       type: 'communications_operation',
       ...operation
@@ -412,6 +475,51 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
     { id: 'settings', icon: Settings, color: 'bg-gray-500 hover:bg-gray-600', title: 'הגדרות מערכת' }
   ];
 
+  // Scenario logic: apply scenario effects
+  const applyScenario = (scenarioId: string) => {
+    const scenario = scenarios.find(s => s.id === scenarioId);
+    if (!scenario) return;
+    if ('initialRelationships' in scenario && scenario.initialRelationships) {
+      Object.entries(scenario.initialRelationships).forEach(([country, value]) => {
+        if (gameState.countries[country]) {
+          gameState.countries[country].diplomacy.relationships = {
+            ...gameState.countries[country].diplomacy.relationships,
+            ...value
+          };
+        }
+      });
+    }
+    if ('initialResources' in scenario && scenario.initialResources) {
+      Object.entries(scenario.initialResources).forEach(([country, res]) => {
+        if (gameState.countries[country]) {
+          gameState.countries[country].resources = {
+            ...gameState.countries[country].resources,
+            ...res
+          };
+        }
+      });
+    }
+    if ('victoryCondition' in scenario && scenario.victoryCondition) {
+      setScenarioVictoryCondition(() => scenario.victoryCondition!);
+    } else {
+      setScenarioVictoryCondition(null);
+    }
+  };
+
+  // Check victory after each action
+  const checkVictory = () => {
+    if (scenarioVictoryCondition && scenarioVictoryCondition(gameState)) {
+      setShowAchievementSummary(true);
+    }
+  };
+
+  // When scenario changes, apply it
+  useEffect(() => {
+    if (activeScenario !== 'default') {
+      applyScenario(activeScenario);
+    }
+  }, [activeScenario]);
+
   return (
     <div className={`min-h-screen relative transition-all duration-500 ${
       isDayMode ? 'bg-blue-50' : 'bg-gray-900'
@@ -426,6 +534,8 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
           events={events}
           activeMissiles={activeMissiles}
           activeAircraft={activeAircraft}
+          missileLaunches={activeMissiles.map(m => ({...m, launchCoordinates: m.launchCoordinates}))}
+          aircraftLaunches={activeAircraft.map(a => ({...a, launchCoordinates: a.launchCoordinates, target: a.target}))}
         />
       </div>
 
@@ -469,6 +579,9 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
                 ? `✈️ ${activeAircraft.reduce((sum, mission) => sum + mission.aircraftCount, 0)} מטוסים`
                 : '🛩️ זמין'
               }
+            </div>
+            <div className={`px-1 sm:px-2 md:px-3 py-1 rounded-full text-xs font-medium bg-yellow-400 text-black`}>
+              ⭐ ניקוד: {score}
             </div>
           </div>
 
@@ -677,6 +790,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
                 gameState={gameState}
                 onAction={handleGameAction}
                 isDayMode={isDayMode}
+                score={score}
               />
             )}
 
@@ -707,6 +821,30 @@ export const WarRoom: React.FC<WarRoomProps> = ({ gameState, onAction }) => {
         enabled={audioEnabled}
         ref={audioRef}
       />
+
+      {/* Floating scenario button */}
+      <div className="fixed bottom-4 right-4 z-[9999]">
+        <button onClick={() => setShowScenarioPanel(true)} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full shadow-lg font-bold">
+          תרחיש
+        </button>
+      </div>
+      {showScenarioPanel && (
+        <ScenarioPanel scenarios={scenarios} selected={activeScenario} onSelect={id => { setActiveScenario(id); setShowScenarioPanel(false); }} onClose={() => setShowScenarioPanel(false)} />
+      )}
+
+      {/* Floating achievements button */}
+      <div className="fixed bottom-4 right-24 z-[9999]">
+        <button onClick={() => setShowAchievementsPanel(true)} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-4 py-2 rounded-full shadow-lg font-bold">
+          הישגים
+        </button>
+      </div>
+      {showAchievementsPanel && (
+        <AchievementsPanel achievements={achievements} unlocked={unlockedAchievements} onClose={() => setShowAchievementsPanel(false)} />
+      )}
+
+      {showAchievementSummary && (
+        <AchievementSummaryPanel achievements={achievements} unlocked={unlockedAchievements} score={score} onClose={() => setShowAchievementSummary(false)} />
+      )}
     </div>
   );
 };

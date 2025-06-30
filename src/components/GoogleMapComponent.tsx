@@ -11,6 +11,8 @@ interface GoogleMapComponentProps {
   events?: any[];
   activeMissiles?: any[];
   activeAircraft?: any[];
+  missileLaunches?: any[];
+  aircraftLaunches?: any[];
 }
 
 interface CountryLocation {
@@ -53,7 +55,9 @@ export const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
   threats = [],
   events = [],
   activeMissiles = [],
-  activeAircraft = []
+  activeAircraft = [],
+  missileLaunches = [],
+  aircraftLaunches = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -469,6 +473,84 @@ export const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
     });
 
   }, [mapElement, threats]);
+
+  // Animate missile launches with air2.png
+  useEffect(() => {
+    if (!mapElement || !missileLaunches || missileLaunches.length === 0) return;
+    missileLaunches.forEach(missile => {
+      if (!missile.launchCoordinates) return;
+      const from = { lat: missile.launchCoordinates[0], lng: missile.launchCoordinates[1] };
+      const to = COUNTRY_LOCATIONS.find(c => c.id === missile.to);
+      if (!to) return;
+      const missileImg = document.createElement('img');
+      missileImg.src = '/src/assets/air2.png';
+      missileImg.style.position = 'absolute';
+      missileImg.style.width = '32px';
+      missileImg.style.height = '32px';
+      missileImg.style.zIndex = '2000';
+      missileImg.style.pointerEvents = 'none';
+      missileImg.style.transition = 'transform 0.3s linear';
+      mapElement.appendChild(missileImg);
+
+      // Simple linear animation (for demo)
+      let progress = 0;
+      const steps = 60;
+      const animate = () => {
+        progress += 1 / steps;
+        const lat = from.lat + (to.lat - from.lat) * progress;
+        const lng = from.lng + (to.lng - from.lng) * progress;
+        // Convert lat/lng to pixel (approximate, for demo)
+        const x = (lng + 180) * (mapElement.offsetWidth / 360);
+        const y = (90 - lat) * (mapElement.offsetHeight / 180);
+        missileImg.style.transform = `translate(${x}px, ${y}px)`;
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          missileImg.remove();
+        }
+      };
+      animate();
+    });
+  }, [mapElement, missileLaunches]);
+
+  // Animate aircraft launches with air3.png
+  useEffect(() => {
+    if (!mapElement || !aircraftLaunches || aircraftLaunches.length === 0) return;
+    aircraftLaunches.forEach(aircraft => {
+      if (!aircraft.launchCoordinates) return;
+      const from = { lat: aircraft.launchCoordinates[0], lng: aircraft.launchCoordinates[1] };
+      const to = COUNTRY_LOCATIONS.find(c => c.id === aircraft.target);
+      if (!to) return;
+      const aircraftImg = document.createElement('img');
+      aircraftImg.src = '/src/assets/air3.png';
+      aircraftImg.style.position = 'absolute';
+      aircraftImg.style.width = '36px';
+      aircraftImg.style.height = '36px';
+      aircraftImg.style.zIndex = '2000';
+      aircraftImg.style.pointerEvents = 'none';
+      aircraftImg.style.transition = 'transform 0.3s linear, opacity 0.5s linear';
+      aircraftImg.style.opacity = '1';
+      mapElement.appendChild(aircraftImg);
+
+      let progress = 0;
+      const steps = 80;
+      const animate = () => {
+        progress += 1 / steps;
+        const lat = from.lat + (to.lat - from.lat) * progress;
+        const lng = from.lng + (to.lng - from.lng) * progress;
+        const x = (lng + 180) * (mapElement.offsetWidth / 360);
+        const y = (90 - lat) * (mapElement.offsetHeight / 180);
+        aircraftImg.style.transform = `translate(${x}px, ${y}px)`;
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          aircraftImg.style.opacity = '0';
+          setTimeout(() => aircraftImg.remove(), 500);
+        }
+      };
+      animate();
+    });
+  }, [mapElement, aircraftLaunches]);
 
   return (
     <div className="relative w-full h-full">

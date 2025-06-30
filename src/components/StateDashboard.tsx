@@ -7,13 +7,15 @@ interface StateDashboardProps {
   gameState: GameState;
   onAction: (action: any) => void;
   isDayMode: boolean;
+  score?: number;
 }
 
 export const StateDashboard: React.FC<StateDashboardProps> = ({
   onClose,
   gameState,
   onAction,
-  isDayMode
+  isDayMode,
+  score
 }) => {
   const currentCountry = gameState.countries[gameState.currentPlayer];
   
@@ -55,6 +57,11 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
               <X className="w-5 h-5 md:w-6 md:h-6" />
             </button>
           </div>
+        </div>
+
+        {/* Show score at the top */}
+        <div className="mb-4 p-4 rounded-lg bg-yellow-100 text-yellow-800 text-xl font-bold text-center shadow">
+          ⭐ ניקוד מצטבר: {score ?? 0}
         </div>
 
         <div className="p-4 md:p-6 space-y-6">

@@ -38,7 +38,22 @@ const TARGET_COUNTRIES = [
   { id: 'iran', name: 'איראן', priority: 'high' },
   { id: 'syria', name: 'סוריה', priority: 'high' },
   { id: 'iraq', name: 'עיראק', priority: 'medium' },
-  { id: 'turkey', name: 'טורקיה', priority: 'medium' }
+  { id: 'turkey', name: 'טורקיה', priority: 'medium' },
+  { id: 'uae', name: 'איחוד האמירויות', priority: 'medium' },
+  { id: 'qatar', name: 'קטר', priority: 'medium' },
+  { id: 'bahrain', name: 'בחריין', priority: 'medium' },
+  { id: 'oman', name: 'עומאן', priority: 'medium' },
+  { id: 'kuwait', name: 'כווית', priority: 'medium' },
+  { id: 'yemen', name: 'תימן', priority: 'low' },
+  { id: 'libya', name: 'לוב', priority: 'medium' },
+  { id: 'sudan', name: 'סודן', priority: 'low' },
+  { id: 'morocco', name: 'מרוקו', priority: 'medium' },
+  { id: 'tunisia', name: 'תוניסיה', priority: 'medium' },
+  { id: 'algeria', name: 'אלג׳יריה', priority: 'medium' },
+  { id: 'pakistan', name: 'פקיסטן', priority: 'high' },
+  { id: 'afghanistan', name: 'אפגניסטן', priority: 'high' },
+  { id: 'cyprus', name: 'קפריסין', priority: 'low' },
+  { id: 'greece', name: 'יוון', priority: 'medium' },
 ];
 
 const MISSION_TYPES = [

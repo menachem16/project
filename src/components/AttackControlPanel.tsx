@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Target, MapPin, Zap } from 'lucide-react';
+import { calculateMissileFlightTime } from '../utils/distanceCalculator';
 
 interface AttackControlPanelProps {
   onClose: () => void;
@@ -17,17 +18,21 @@ const WEAPONS = {
   north: [
     { id: 'arrow3', name: 'חץ 3', range: 2400, type: 'interceptor' },
     { id: 'iron_dome', name: 'כיפת ברזל', range: 70, type: 'defense' },
-    { id: 'spike', name: 'ספייק NLOS', range: 25, type: 'tactical' }
+    { id: 'spike', name: 'ספייק NLOS', range: 25, type: 'tactical' },
+    { id: 's400', name: 'S-400', range: 400, type: 'defense' },
+    { id: 'patriot', name: 'פטריוט', range: 160, type: 'defense' },
   ],
   center: [
     { id: 'jericho3', name: 'יריחו III', range: 4800, type: 'strategic' },
     { id: 'delilah', name: 'דלילה', range: 250, type: 'cruise' },
-    { id: 'popeye', name: 'פופאי', range: 1500, type: 'standoff' }
+    { id: 'popeye', name: 'פופאי', range: 1500, type: 'standoff' },
+    { id: 'shahed136', name: 'שהד-136', range: 2500, type: 'cruise' },
   ],
   south: [
     { id: 'david_sling', name: 'קלע דוד', range: 300, type: 'interceptor' },
     { id: 'iron_beam', name: 'קרן ברזל', range: 7, type: 'laser' },
-    { id: 'tamuz', name: 'תמוז', range: 25, type: 'tactical' }
+    { id: 'tamuz', name: 'תמוז', range: 25, type: 'tactical' },
+    { id: 'patriot', name: 'פטריוט', range: 160, type: 'defense' },
   ]
 };
 
@@ -59,7 +64,22 @@ const TARGETS = [
     cities: ['עזה', 'חאן יונס', 'רפיח', 'ג\'באליה'],
     distance: 70,
     defenseLevel: 'low'
-  }
+  },
+  { id: 'uae', name: 'איחוד האמירויות', cities: ['אבו דאבי', 'דובאי'], distance: 2100, defenseLevel: 'medium' },
+  { id: 'qatar', name: 'קטר', cities: ['דוחה'], distance: 1800, defenseLevel: 'medium' },
+  { id: 'bahrain', name: 'בחריין', cities: ['מנאמה'], distance: 1700, defenseLevel: 'medium' },
+  { id: 'oman', name: 'עומאן', cities: ['מסקט'], distance: 2500, defenseLevel: 'medium' },
+  { id: 'kuwait', name: 'כווית', cities: ['כווית סיטי'], distance: 1600, defenseLevel: 'medium' },
+  { id: 'yemen', name: 'תימן', cities: ['צנעא'], distance: 2400, defenseLevel: 'low' },
+  { id: 'libya', name: 'לוב', cities: ['טריפולי'], distance: 2200, defenseLevel: 'medium' },
+  { id: 'sudan', name: 'סודן', cities: ['חרטום'], distance: 1800, defenseLevel: 'low' },
+  { id: 'morocco', name: 'מרוקו', cities: ['רבאט', 'קזבלנקה'], distance: 3900, defenseLevel: 'medium' },
+  { id: 'tunisia', name: 'תוניסיה', cities: ['תוניס'], distance: 2700, defenseLevel: 'medium' },
+  { id: 'algeria', name: 'אלג׳יריה', cities: ['אלג׳יר'], distance: 3200, defenseLevel: 'medium' },
+  { id: 'pakistan', name: 'פקיסטן', cities: ['איסלאמאבאד', 'קראצ׳י'], distance: 4000, defenseLevel: 'high' },
+  { id: 'afghanistan', name: 'אפגניסטן', cities: ['קאבול'], distance: 4200, defenseLevel: 'high' },
+  { id: 'cyprus', name: 'קפריסין', cities: ['ניקוסיה'], distance: 400, defenseLevel: 'low' },
+  { id: 'greece', name: 'יוון', cities: ['אתונה'], distance: 1200, defenseLevel: 'medium' },
 ];
 
 export const AttackControlPanel: React.FC<AttackControlPanelProps> = ({
@@ -71,6 +91,7 @@ export const AttackControlPanel: React.FC<AttackControlPanelProps> = ({
   const [selectedWeapon, setSelectedWeapon] = useState('');
   const [selectedTarget, setSelectedTarget] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
+  const [outOfRange, setOutOfRange] = useState(false);
 
   const calculateFlightTime = () => {
     if (!selectedSite || !selectedWeapon || !selectedTarget) return 0;
@@ -106,12 +127,27 @@ export const AttackControlPanel: React.FC<AttackControlPanelProps> = ({
     return Math.max(20, Math.min(95, baseRate));
   };
 
+  // Check range whenever weapon or target changes
+  useEffect(() => {
+    if (!selectedSite || !selectedWeapon || !selectedTarget) {
+      setOutOfRange(false);
+      return;
+    }
+    // Use calculateMissileFlightTime for real range check
+    const result = calculateMissileFlightTime('israel', selectedTarget, selectedWeapon);
+    setOutOfRange(result === -1);
+  }, [selectedSite, selectedWeapon, selectedTarget]);
+
   const handleLaunch = () => {
     if (!selectedSite || !selectedWeapon || !selectedTarget || !selectedCity) {
       alert('יש לבחור את כל הפרמטרים');
       return;
     }
-
+    if (outOfRange) {
+      alert('המטרה מחוץ לטווח הנשק');
+      return;
+    }
+    const siteObj = LAUNCH_SITES.find(s => s.id === selectedSite);
     const attackData = {
       site: selectedSite,
       weapon: selectedWeapon,
@@ -119,9 +155,9 @@ export const AttackControlPanel: React.FC<AttackControlPanelProps> = ({
       city: selectedCity,
       flightTime: calculateFlightTime(),
       successRate: calculateSuccessRate(),
-      timestamp: new Date()
+      timestamp: new Date(),
+      launchCoordinates: siteObj ? siteObj.coordinates : undefined
     };
-
     onAttack(attackData);
     onClose();
   };
@@ -381,6 +417,11 @@ export const AttackControlPanel: React.FC<AttackControlPanelProps> = ({
                   </div>
                 </div>
               </div>
+              {outOfRange && (
+                <div className="mt-4 text-center text-red-600 font-bold text-lg">
+                  המטרה מחוץ לטווח הנשק
+                </div>
+              )}
             </div>
           )}
 
@@ -388,9 +429,9 @@ export const AttackControlPanel: React.FC<AttackControlPanelProps> = ({
           <div className="flex justify-center">
             <button
               onClick={handleLaunch}
-              disabled={!selectedSite || !selectedWeapon || !selectedTarget || !selectedCity}
+              disabled={!selectedSite || !selectedWeapon || !selectedTarget || !selectedCity || outOfRange}
               className={`px-8 py-4 rounded-lg font-bold text-lg transition-all ${
-                selectedSite && selectedWeapon && selectedTarget && selectedCity
+                selectedSite && selectedWeapon && selectedTarget && selectedCity && !outOfRange
                   ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl'
                   : 'bg-gray-400 text-gray-600 cursor-not-allowed'
               }`}

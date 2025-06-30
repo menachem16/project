@@ -407,5 +407,21 @@ export const COUNTRIES: Record<string, Country> = {
       capabilities: { gathering: 45, analysis: 40, cyber: 25, counterIntel: 50 }
     },
     resources: { water: 70, oil: 95, gas: 80, minerals: 50, food: 35 }
+  },
+
+  uae: {
+    id: 'uae',
+    name: 'United Arab Emirates',
+    capital: 'Abu Dhabi',
+    flag: '🇦🇪',
+    ideology: 'autocracy',
+    population: 9800000,
+    demographics: { ethnic: { arab: 12, other: 88 }, religious: { muslim: 76, christian: 9, hindu: 15 } },
+    economy: { gdp: 421000000000, sectors: { oil: 30, technology: 10, tourism: 20, agriculture: 2, industry: 38 }, budget: { income: 120000000000, expenses: { defense: 25000000000, health: 12000000000, education: 10000000000, infrastructure: 15000000000 } }, debt: 20, inflation: 2.2, sanctions: [] },
+    military: { units: { infantry: 30, armor: 40, airForce: 50, navy: 30, special: 40, missiles: 30, drones: 40, cyber: 30 }, doctrine: 'defensive', nuclear: { status: 'none', warheads: 0, delivery: [] }, experience: 50, morale: 60 },
+    politics: { stability: 80, corruption: 30, publicSupport: 80, freedomIndex: 20, pressureGroups: { opposition: 10, minorities: 10, military: 20, religious: 40 } },
+    diplomacy: { relationships: { israel: 60, saudi: 80, iran: -40, egypt: 70, qatar: 30, bahrain: 80 }, agreements: ['Abraham Accords'], organizations: ['UN', 'Arab League', 'GCC'] },
+    intelligence: { agencies: 40, budget: 1000000000, capabilities: { gathering: 40, analysis: 40, cyber: 30, counterIntel: 40 } },
+    resources: { water: 5, oil: 80, gas: 60, minerals: 10, food: 10 }
   }
 };

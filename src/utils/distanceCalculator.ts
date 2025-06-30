@@ -12,7 +12,22 @@ export const COUNTRY_COORDINATES: Record<string, CountryCoordinates> = {
   iran: { lat: 32.4279, lng: 53.6880 },
   jordan: { lat: 30.5852, lng: 36.2384 },
   syria: { lat: 34.8021, lng: 38.9968 },
-  iraq: { lat: 33.2232, lng: 43.6793 }
+  iraq: { lat: 33.2232, lng: 43.6793 },
+  uae: { lat: 24.4539, lng: 54.3773 },
+  qatar: { lat: 25.276987, lng: 51.520008 },
+  bahrain: { lat: 26.0667, lng: 50.5577 },
+  oman: { lat: 23.5859, lng: 58.4059 },
+  kuwait: { lat: 29.3759, lng: 47.9774 },
+  yemen: { lat: 15.5527, lng: 48.5164 },
+  libya: { lat: 26.3351, lng: 17.2283 },
+  sudan: { lat: 12.8628, lng: 30.2176 },
+  morocco: { lat: 31.7917, lng: -7.0926 },
+  tunisia: { lat: 33.8869, lng: 9.5375 },
+  algeria: { lat: 28.0339, lng: 1.6596 },
+  pakistan: { lat: 30.3753, lng: 69.3451 },
+  afghanistan: { lat: 33.9391, lng: 67.7100 },
+  cyprus: { lat: 35.1264, lng: 33.4299 },
+  greece: { lat: 39.0742, lng: 21.8243 }
 };
 
 // Calculate distance between two points using Haversine formula
@@ -43,7 +58,10 @@ export const MISSILE_TYPES: Record<string, MissileType> = {
   spike: { id: 'spike', name: 'ספייק NLOS', speed: 400, range: 25, type: 'tactical' },
   scud: { id: 'scud', name: 'סקאד', speed: 2000, range: 700, type: 'ballistic' },
   fateh: { id: 'fateh', name: 'פאתח', speed: 3000, range: 500, type: 'ballistic' },
-  qassam: { id: 'qassam', name: 'קסאם', speed: 800, range: 40, type: 'tactical' }
+  qassam: { id: 'qassam', name: 'קסאם', speed: 800, range: 40, type: 'tactical' },
+  s400: { id: 's400', name: 'S-400', speed: 4800, range: 400, type: 'ballistic' },
+  patriot: { id: 'patriot', name: 'Patriot', speed: 5000, range: 160, type: 'ballistic' },
+  shahed136: { id: 'shahed136', name: 'Shahed-136', speed: 185, range: 2500, type: 'cruise' }
 };
 
 // Aircraft types with their characteristics
@@ -59,7 +77,14 @@ export const AIRCRAFT_TYPES: Record<string, AircraftType> = {
   f35: { id: 'f35', name: 'F-35', speed: 1900, range: 2200, type: 'fighter' },
   f16: { id: 'f16', name: 'F-16', speed: 2100, range: 4200, type: 'fighter' },
   f15: { id: 'f15', name: 'F-15', speed: 2650, range: 4800, type: 'fighter' },
-  apache: { id: 'apache', name: 'אפאצ\'י', speed: 365, range: 480, type: 'fighter' }
+  apache: { id: 'apache', name: 'אפאצ\'י', speed: 365, range: 480, type: 'fighter' },
+  bayraktar: { id: 'bayraktar', name: 'Bayraktar TB2', speed: 130, range: 150, type: 'fighter' },
+  rafale: { id: 'rafale', name: 'Rafale', speed: 1912, range: 3700, type: 'fighter' },
+  su35: { id: 'su35', name: 'Su-35', speed: 2400, range: 3600, type: 'fighter' },
+  f22: { id: 'f22', name: 'F-22 Raptor', speed: 2410, range: 2960, type: 'fighter' },
+  f4: { id: 'f4', name: 'F-4 Phantom', speed: 2370, range: 2600, type: 'fighter' },
+  f7: { id: 'f7', name: 'F-7', speed: 1700, range: 2200, type: 'fighter' },
+  mig29: { id: 'mig29', name: 'MiG-29', speed: 2450, range: 2100, type: 'fighter' }
 };
 
 // Calculate flight time for missiles
