@@ -1,19 +1,7 @@
 import { useState, useCallback } from 'react';
 import { GameState, Country, GameEvent, NewsItem, GameAction, AIPersonality } from '../types/game';
 import { COUNTRIES } from '../data/countries';
-import { generateEvent, generateNews, calculateActionEffects, executeAITurn } from '../utils/engineUtils';
-
-// AI Personalities for each country
-const AI_PERSONALITIES: Record<string, AIPersonality> = {
-  israel: { aggression: 70, caution: 80, expansion: 40, cooperation: 60, ideology: 70, priorities: ['security', 'technology', 'alliances'] },
-  egypt: { aggression: 40, caution: 70, expansion: 30, cooperation: 70, ideology: 50, priorities: ['stability', 'economy', 'regional_power'] },
-  saudi: { aggression: 60, caution: 60, expansion: 80, cooperation: 50, ideology: 90, priorities: ['oil', 'influence', 'security'] },
-  turkey: { aggression: 80, caution: 40, expansion: 90, cooperation: 40, ideology: 60, priorities: ['expansion', 'influence', 'economy'] },
-  iran: { aggression: 90, caution: 30, expansion: 80, cooperation: 20, ideology: 95, priorities: ['nuclear', 'regional_hegemony', 'ideology'] },
-  jordan: { aggression: 20, caution: 90, expansion: 10, cooperation: 80, ideology: 40, priorities: ['stability', 'alliances', 'survival'] },
-  syria: { aggression: 60, caution: 40, expansion: 30, cooperation: 30, ideology: 70, priorities: ['survival', 'iranian_alliance', 'control'] },
-  iraq: { aggression: 30, caution: 70, expansion: 20, cooperation: 60, ideology: 40, priorities: ['stability', 'reconstruction', 'sovereignty'] }
-};
+import { generateEvent, generateNews, calculateActionEffects, executeAITurn, AI_PERSONALITIES } from '../utils/engineUtils';
 
 export const useGameEngine = () => {
   const [gameState, setGameState] = useState<GameState>({
